@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stock Analysis App</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <style>
+        .card { margin: 20px; }
+        .metrics { margin: 20px 0; }
+        .plot-container { margin-top: 30px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-4">Stock Analysis App</h1>
+        <form method="POST">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <input type="text" class="form-control" 
+                           name="symbol" 
+                           placeholder="Enter stock symbol (e.g., MSFT)" 
+                           required>
+                </div>
+                <div class="col-md-4">
+                    <select class="form-select" name="period">
+                        <option value="1y">1 Year</option>
+                        <option value="6mo">6 Months</option>
+                        <option value="3mo">3 Months</option>
+                        <option value="1mo">1 Month</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Analyze</button>
+                </div>
+            </div>
+        </form>
+
+        {% if error %}
+            <div class="alert alert-danger mt-4">{{ error }}</div>
+        {% endif %}
+
+        {% if metrics %}
+            <div class="metrics card">
+                <div class="card-body">
+                    <h3 class="card-title">{{ metrics.symbol }} Metrics</h3>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <p class="mb-1">Current Price: ${{ metrics.current_price }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <p class="mb-1 text-{{ 'success' if metrics.price_change >= 0 else 'danger' }}">
+                                Daily Change: ${{ metrics.price_change }} ({{ metrics.percent_change }}%)
+                            </p>
+                        </div>
+                        <div class="col-md-3">
+                            <p class="mb-1">20 Day MA: ${{ metrics.ma_20 }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <p class="mb-1">50 Day MA: ${{ metrics.ma_50 }}</p>
+                        </div>
+						<div class="col-md-3">
+						<p class="mb-1">
+							Prediction: <span class="fw-bold text-{{ 'success' if metrics.prediction == 'Uptrend' else 'danger' }}">
+								{{ metrics.prediction }}
+							</span>
+						</p>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        {% if plot_html %}
+            <div class="plot-container card">
+                <div class="card-body">
+                    {{ plot_html|safe }}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
