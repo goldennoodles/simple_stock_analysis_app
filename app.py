@@ -2,6 +2,8 @@ from flask import Flask, render_template, request
 import yfinance as yf
 import plotly.graph_objs as go
 import pandas as pd
+from plotly.subplots import make_subplots
+
 
 app = Flask(__name__)
 
@@ -16,20 +18,19 @@ def calculate_technical_indicators(df):
     df['20_MA'] = df['Close'].rolling(window=20).mean()
     df['50_MA'] = df['Close'].rolling(window=50).mean()
 
-    # Calculate RSI
     delta = df['Close'].diff()
     gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
     loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
     rs = gain / loss
     df['RSI'] = 100 - (100 / (1 + rs))
 
-    # Calculate MACD
+
     df['EMA_12'] = df['Close'].ewm(span=12, adjust=False).mean()
     df['EMA_26'] = df['Close'].ewm(span=26, adjust=False).mean()
     df['MACD'] = df['EMA_12'] - df['EMA_26']
     df['Signal_Line'] = df['MACD'].ewm(span=9, adjust=False).mean()
 
-    # Calculate Bollinger Bands
+
     df['Middle_Band'] = df['Close'].rolling(window=20).mean()
     df['Upper_Band'] = df['Middle_Band'] + 2 * df['Close'].rolling(window=20).std()
     df['Lower_Band'] = df['Middle_Band'] - 2 * df['Close'].rolling(window=20).std()
@@ -40,34 +41,34 @@ def calculate_technical_indicators(df):
     return df
 
 
-def create_plot(df, symbol):
-    fig = go.Figure()
-    
+def create_indicator_plot(df, symbol):
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True, 
+                        vertical_spacing=0.3, subplot_titles=('Candlestick Chart', 'Technical Indicators'))
+
+    # Candlestick chart
     fig.add_trace(go.Candlestick(x=df.index,
                                  open=df['Open'],
                                  high=df['High'],
                                  low=df['Low'],
                                  close=df['Close'],
-                                 name='Candlestick'))
-    fig.add_trace(go.Scatter(x=df.index, y=df['20_MA'], name='20 Day MA', line=dict(color='blue')))
-    fig.add_trace(go.Scatter(x=df.index, y=df['50_MA'], name='50 Day MA', line=dict(color='red')))
+                                 name='Candlestick'), row=1, col=1)
     
-    # RSI
-    # fig.add_trace(go.Scatter(x=df.index, y=df['RSI'], name='RSI', line=dict(color='purple')))
+    fig.add_trace(go.Scatter(x=df.index, y=df['20_MA'], name='20 Day MA', line=dict(color='blue')), row=1, col=1)
+    fig.add_trace(go.Scatter(x=df.index, y=df['50_MA'], name='50 Day MA', line=dict(color='red')), row=1, col=1)
+    fig.add_trace(go.Scatter(x=df.index, y=df['Upper_Band'], name='Upper Bollinger Band', line=dict(color='grey', dash='dash')), row=1, col=1)
+    fig.add_trace(go.Scatter(x=df.index, y=df['Lower_Band'], name='Lower Bollinger Band', line=dict(color='grey', dash='dash')), row=1, col=1)
 
-    # # MACD and Signal Line
-    # fig.add_trace(go.Scatter(x=df.index, y=df['MACD'], name='MACD', line=dict(color='orange')))
-    # fig.add_trace(go.Scatter(x=df.index, y=df['Signal_Line'], name='Signal Line', line=dict(color='green')))
 
-    # # Bollinger Bands
-    # fig.add_trace(go.Scatter(x=df.index, y=df['Upper_Band'], name='Upper Bollinger Band', line=dict(color='grey', dash='dash')))
-    # fig.add_trace(go.Scatter(x=df.index, y=df['Lower_Band'], name='Lower Bollinger Band', line=dict(color='grey', dash='dash')))
+    # Technical Indicators
+    fig.add_trace(go.Scatter(x=df.index, y=df['RSI'], name='RSI', line=dict(color='purple')), row=2, col=1)
+    fig.add_trace(go.Scatter(x=df.index, y=df['MACD'], name='MACD', line=dict(color='orange')), row=2, col=1)
+    fig.add_trace(go.Scatter(x=df.index, y=df['Signal_Line'], name='Signal Line', line=dict(color='green')), row=2, col=1)
 
     fig.update_layout(
-        title=f'{symbol} Stock Price Analysis',
+        title=f'{symbol} Stock Analysis',
         xaxis_title='Date',
-        yaxis_title='Price (USD)',
-        template='plotly_dark'
+        template='plotly_dark',
+        height=800
     )
     return fig.to_html(full_html=False)
 
@@ -84,7 +85,7 @@ def index():
             if df.isna().all().any():
                 raise ValueError("Insufficient data for analysis.")
             
-            plot_html = create_plot(df, symbol)
+            indicator_plot_html = create_indicator_plot(df, symbol)
             
             latest_close = df['Close'].iloc[-1]
             previous_close = df['Close'].iloc[-2]
@@ -98,7 +99,7 @@ def index():
                 "percent_change": percent_change,
                 "ma_20": round(df['20_MA'].iloc[-1], 2) if not pd.isna(df['20_MA'].iloc[-1]) else None,
                 "ma_50": round(df['50_MA'].iloc[-1], 2) if not pd.isna(df['50_MA'].iloc[-1]) else None,
-                "prediction": df['Prediction'].iloc[-1],  # Last row's prediction
+                "prediction": df['Prediction'].iloc[-1],
                 "rsi": round(df['RSI'].iloc[-1], 2) if not pd.isna(df['RSI'].iloc[-1]) else None,
                 "macd": round(df['MACD'].iloc[-1], 2) if not pd.isna(df['MACD'].iloc[-1]) else None,
                 "signal_line": round(df['Signal_Line'].iloc[-1], 2) if not pd.isna(df['Signal_Line'].iloc[-1]) else None,
@@ -107,7 +108,7 @@ def index():
             }
 
             
-            return render_template('index.html', plot_html=plot_html, metrics=metrics, error=None)
+            return render_template('index.html', indicator_plot_html=indicator_plot_html, metrics=metrics, error=None)
         
         except (KeyError, ValueError, yf.YFinanceError) as e:
             return render_template('index.html', plot_html=None, metrics=None, error=f"Error: {str(e)}")
