@@ -80,36 +80,36 @@
                     <h3 class="card-title">{{ metrics.symbol }} Metrics</h3>
                     <div class="row">
                         <div class="col-md-3">
-                            <p class="mb-1">Current Price: ${{ metrics.current_price }}</p>
+<p class="mb-1"><strong>Current Price:</strong> ${{ metrics.current_price }}</p>
                         </div>
                         <div class="col-md-3">
-                            <p class="mb-1 text-{{ 'success' if metrics.price_change >= 0 else 'danger' }}">
-                                Daily Change: ${{ metrics.price_change }} ({{ metrics.percent_change }}%)
+<p class="mb-1 text-{{ 'success' if metrics.price_change >= 0 else 'danger' }}">
+                                <strong>Daily Change:</strong> ${{ metrics.price_change }} ({{ metrics.percent_change }}%)
                             </p>
                         </div>
                         <div class="col-md-3">
-                                    <p class="mb-1" title="The average closing price over the last 20 days.">20 Day MA: ${{ metrics.ma_20 }}</p>
+<p class="mb-1" title="The average closing price over the last 20 days."><strong>20 Day MA:</strong> ${{ metrics.ma_20 }}</p>
                                 </div>
                                 <div class="col-md-6">
-                                    <p class="mb-1" title="The average closing price over the last 50 days.">50 Day MA: ${{ metrics.ma_50 }}</p>
+<p class="mb-1" title="The average closing price over the last 50 days."><strong>50 Day MA:</strong> ${{ metrics.ma_50 }}</p>
                                 </div>
                                 <div class="col-md-6">
-                                    <p class="mb-1" title="Relative Strength Index, measures the speed and change of price movements.">RSI: {{ metrics.rsi }}</p>
+<p class="mb-1" title="Relative Strength Index, measures the speed and change of price movements."><strong>RSI:</strong> {{ metrics.rsi }}</p>
                                 </div>
                                 <div class="col-md-6">
-                                    <p class="mb-1" title="Moving Average Convergence Divergence, a trend-following momentum indicator.">MACD: {{ metrics.macd }}</p>
+<p class="mb-1" title="Moving Average Convergence Divergence, a trend-following momentum indicator."><strong>MACD:</strong> {{ metrics.macd }}</p>
                                 </div>
                                 <div class="col-md-6">
-                                    <p class="mb-1" title="A 9-day EMA of the MACD, used to signal buy/sell opportunities.">Signal Line: {{ metrics.signal_line }}</p>
+<p class="mb-1" title="A 9-day EMA of the MACD, used to signal buy/sell opportunities."><strong>Signal Line:</strong> {{ metrics.signal_line }}</p>
                                 </div>
                                 <div class="col-md-6">
-                                    <p class="mb-1" title="A volatility indicator with upper and lower bands around a moving average.">Bollinger Bands: {{ metrics.upper_band }} / {{ metrics.lower_band }}</p>
+<p class="mb-1" title="A volatility indicator with upper and lower bands around a moving average."><strong>Bollinger Bands:</strong> {{ metrics.upper_band }} / {{ metrics.lower_band }}</p>
                                 </div>
                                 <div class="col-md-6">
-                                    <p class="mb-1" title="Stochastic Oscillator, a momentum indicator comparing a particular closing price to a range of its prices over a certain period of time.">%K: {{ metrics.k }} / %D: {{ metrics.d }}</p>
+<p class="mb-1" title="Stochastic Oscillator, a momentum indicator comparing a particular closing price to a range of its prices over a certain period of time."><strong>%K:</strong> {{ metrics.k }} / <strong>%D:</strong> {{ metrics.d }}</p>
                                 </div>
                                 <div class="col-md-6">
-                                    <p class="mb-1" title="Average True Range, a measure of volatility.">ATR: {{ metrics.atr }}</p>
+<p class="mb-1" title="Average True Range, a measure of volatility."><strong>ATR:</strong> {{ metrics.atr }}</p>
                                 </div>
                                 <div class="col-md-3">
                                     <p class="mb-1">

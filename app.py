@@ -116,7 +116,7 @@ def index():
             
             metrics = {
                 "symbol": symbol,
-                "current_price": latest_close,
+                "current_price": round(latest_close, 2),
                 "price_change": price_change,
                 "percent_change": percent_change,
                 "ma_20": round(df['20_MA'].iloc[-1], 2) if not pd.isna(df['20_MA'].iloc[-1]) else None,
