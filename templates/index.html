@@ -19,7 +19,7 @@
                            name="symbol" 
                            placeholder="Enter stock symbol (e.g., MSFT)" 
                            required>
-                </div>
+                    </div>
                 <div class="col-md-4">
                     <select class="form-select" name="period">
                         <option value="1y">1 Year</option>
@@ -57,13 +57,25 @@
                         <div class="col-md-3">
                             <p class="mb-1">50 Day MA: ${{ metrics.ma_50 }}</p>
                         </div>
-						<div class="col-md-3">
-						<p class="mb-1">
-							Prediction: <span class="fw-bold text-{{ 'success' if metrics.prediction == 'Uptrend' else 'danger' }}">
-								{{ metrics.prediction }}
-							</span>
-						</p>
-                    </div>
+                        <div class="col-md-3">
+                            <p class="mb-1">RSI: {{ metrics.rsi }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <p class="mb-1">MACD: {{ metrics.macd }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <p class="mb-1">Signal Line: {{ metrics.signal_line }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <p class="mb-1">Bollinger Bands: {{ metrics.upper_band }} / {{ metrics.lower_band }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <p class="mb-1">
+                                Prediction: <span class="fw-bold text-{{ 'success' if metrics.prediction == 'Uptrend' else 'danger' }}">
+                                    {{ metrics.prediction }}
+                                </span>
+                            </p>
+                        </div>
                 </div>
             </div>
         {% endif %}

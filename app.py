@@ -16,7 +16,25 @@ def calculate_technical_indicators(df):
     df['20_MA'] = df['Close'].rolling(window=20).mean()
     df['50_MA'] = df['Close'].rolling(window=50).mean()
 
-    df['Prediction'] = ['Uptrend' if ma20 > ma50 else 'Downtrend' 
+    # Calculate RSI
+    delta = df['Close'].diff()
+    gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
+    loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
+    rs = gain / loss
+    df['RSI'] = 100 - (100 / (1 + rs))
+
+    # Calculate MACD
+    df['EMA_12'] = df['Close'].ewm(span=12, adjust=False).mean()
+    df['EMA_26'] = df['Close'].ewm(span=26, adjust=False).mean()
+    df['MACD'] = df['EMA_12'] - df['EMA_26']
+    df['Signal_Line'] = df['MACD'].ewm(span=9, adjust=False).mean()
+
+    # Calculate Bollinger Bands
+    df['Middle_Band'] = df['Close'].rolling(window=20).mean()
+    df['Upper_Band'] = df['Middle_Band'] + 2 * df['Close'].rolling(window=20).std()
+    df['Lower_Band'] = df['Middle_Band'] - 2 * df['Close'].rolling(window=20).std()
+
+    df['Prediction'] = ['Uptrend' if ma20 > ma50 else 'Downtrend'
                         for ma20, ma50 in zip(df['20_MA'], df['50_MA'])]
 
     return df
@@ -34,6 +52,17 @@ def create_plot(df, symbol):
     fig.add_trace(go.Scatter(x=df.index, y=df['20_MA'], name='20 Day MA', line=dict(color='blue')))
     fig.add_trace(go.Scatter(x=df.index, y=df['50_MA'], name='50 Day MA', line=dict(color='red')))
     
+    # RSI
+    # fig.add_trace(go.Scatter(x=df.index, y=df['RSI'], name='RSI', line=dict(color='purple')))
+
+    # # MACD and Signal Line
+    # fig.add_trace(go.Scatter(x=df.index, y=df['MACD'], name='MACD', line=dict(color='orange')))
+    # fig.add_trace(go.Scatter(x=df.index, y=df['Signal_Line'], name='Signal Line', line=dict(color='green')))
+
+    # # Bollinger Bands
+    # fig.add_trace(go.Scatter(x=df.index, y=df['Upper_Band'], name='Upper Bollinger Band', line=dict(color='grey', dash='dash')))
+    # fig.add_trace(go.Scatter(x=df.index, y=df['Lower_Band'], name='Lower Bollinger Band', line=dict(color='grey', dash='dash')))
+
     fig.update_layout(
         title=f'{symbol} Stock Price Analysis',
         xaxis_title='Date',
@@ -69,7 +98,12 @@ def index():
                 "percent_change": percent_change,
                 "ma_20": round(df['20_MA'].iloc[-1], 2) if not pd.isna(df['20_MA'].iloc[-1]) else None,
                 "ma_50": round(df['50_MA'].iloc[-1], 2) if not pd.isna(df['50_MA'].iloc[-1]) else None,
-                "prediction": df['Prediction'].iloc[-1]  # Last row's prediction
+                "prediction": df['Prediction'].iloc[-1],  # Last row's prediction
+                "rsi": round(df['RSI'].iloc[-1], 2) if not pd.isna(df['RSI'].iloc[-1]) else None,
+                "macd": round(df['MACD'].iloc[-1], 2) if not pd.isna(df['MACD'].iloc[-1]) else None,
+                "signal_line": round(df['Signal_Line'].iloc[-1], 2) if not pd.isna(df['Signal_Line'].iloc[-1]) else None,
+                "upper_band": round(df['Upper_Band'].iloc[-1], 2) if not pd.isna(df['Upper_Band'].iloc[-1]) else None,
+                "lower_band": round(df['Lower_Band'].iloc[-1], 2) if not pd.isna(df['Lower_Band'].iloc[-1]) else None
             }
 
             
