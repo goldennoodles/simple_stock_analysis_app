@@ -35,8 +35,23 @@ def calculate_technical_indicators(df):
     df['Upper_Band'] = df['Middle_Band'] + 2 * df['Close'].rolling(window=20).std()
     df['Lower_Band'] = df['Middle_Band'] - 2 * df['Close'].rolling(window=20).std()
 
-    df['Prediction'] = ['Uptrend' if ma20 > ma50 else 'Downtrend'
-                        for ma20, ma50 in zip(df['20_MA'], df['50_MA'])]
+    # Stochastic Oscillator
+    df['L14'] = df['Low'].rolling(window=14).min()
+    df['H14'] = df['High'].rolling(window=14).max()
+    df['%K'] = 100 * ((df['Close'] - df['L14']) / (df['H14'] - df['L14']))
+    df['%D'] = df['%K'].rolling(window=3).mean()
+
+    # Average True Range (ATR)
+    df['H-L'] = df['High'] - df['Low']
+    df['H-PC'] = abs(df['High'] - df['Close'].shift(1))
+    df['L-PC'] = abs(df['Low'] - df['Close'].shift(1))
+    df['TR'] = df[['H-L', 'H-PC', 'L-PC']].max(axis=1)
+    df['ATR'] = df['TR'].rolling(window=14).mean()
+
+    df['Prediction'] = [
+        'Uptrend' if (rsi > 50 and macd > signal and close > middle_band) else 'Downtrend'
+        for rsi, macd, signal, close, middle_band in zip(df['RSI'], df['MACD'], df['Signal_Line'], df['Close'], df['Middle_Band'])
+    ]
 
     return df
 
@@ -63,6 +78,13 @@ def create_indicator_plot(df, symbol):
     fig.add_trace(go.Scatter(x=df.index, y=df['RSI'], name='RSI', line=dict(color='purple')), row=2, col=1)
     fig.add_trace(go.Scatter(x=df.index, y=df['MACD'], name='MACD', line=dict(color='orange')), row=2, col=1)
     fig.add_trace(go.Scatter(x=df.index, y=df['Signal_Line'], name='Signal Line', line=dict(color='green')), row=2, col=1)
+
+    # Stochastic Oscillator
+    fig.add_trace(go.Scatter(x=df.index, y=df['%K'], name='%K', line=dict(color='cyan')), row=2, col=1)
+    fig.add_trace(go.Scatter(x=df.index, y=df['%D'], name='%D', line=dict(color='magenta')), row=2, col=1)
+
+    # Average True Range (ATR)
+    fig.add_trace(go.Scatter(x=df.index, y=df['ATR'], name='ATR', line=dict(color='yellow')), row=2, col=1)
 
     fig.update_layout(
         title=f'{symbol} Stock Analysis',
@@ -104,16 +126,19 @@ def index():
                 "macd": round(df['MACD'].iloc[-1], 2) if not pd.isna(df['MACD'].iloc[-1]) else None,
                 "signal_line": round(df['Signal_Line'].iloc[-1], 2) if not pd.isna(df['Signal_Line'].iloc[-1]) else None,
                 "upper_band": round(df['Upper_Band'].iloc[-1], 2) if not pd.isna(df['Upper_Band'].iloc[-1]) else None,
-                "lower_band": round(df['Lower_Band'].iloc[-1], 2) if not pd.isna(df['Lower_Band'].iloc[-1]) else None
+                "lower_band": round(df['Lower_Band'].iloc[-1], 2) if not pd.isna(df['Lower_Band'].iloc[-1]) else None,
+                "k": round(df['%K'].iloc[-1], 2) if not pd.isna(df['%K'].iloc[-1]) else None,
+                "d": round(df['%D'].iloc[-1], 2) if not pd.isna(df['%D'].iloc[-1]) else None,
+                "atr": round(df['ATR'].iloc[-1], 2) if not pd.isna(df['ATR'].iloc[-1]) else None
             }
 
             
-            return render_template('index.html', indicator_plot_html=indicator_plot_html, metrics=metrics, error=None)
+            return render_template('index.html', indicator_plot_html=indicator_plot_html, metrics=metrics, error=None, symbol=symbol, period=period)
         
         except (KeyError, ValueError, yf.YFinanceError) as e:
-            return render_template('index.html', plot_html=None, metrics=None, error=f"Error: {str(e)}")
+            return render_template('index.html', plot_html=None, metrics=None, error=f"Error: {str(e)}", symbol=symbol, period=period)
     
-    return render_template('index.html', plot_html=None, metrics=None, error=None)
+    return render_template('index.html', plot_html=None, metrics=None, error=None, symbol='', period='1y')
 
 if __name__ == '__main__':
     app.run(debug=True)
